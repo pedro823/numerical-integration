@@ -20,12 +20,17 @@ function [midpoint, trapezoid, simpson] = applyIntegralAprox(f, a, b, n)
     h = X(2) - X(1);
     midpoint = midPointRule(f, X, h);
     trapezoid = trapezoidRule(f, X, h);
-    simpson = simpsonRule(f, X, h);
+
+    # Para a regra de simpson, utilizei a implementação do Wolfram|Alpha
+    # Que multiplica a quantidade de pontos por dois para ter certeza que é par
+    M = linspace(a, b, 2*n + 1);
+    h = M(2) - M(1);
+    simpson = simpsonRule(f, M, h);
 end
 
 # Imprime a funcao, as aproximacoes de cada metodo e o erro delas
 # integral_function e a mesma da analyzeError().
-function printIntegralAprox(f, integral_function, a, b, n)
+function [errors] = printIntegralAprox(f, integral_function, a, b, n)
     [midpoint, trapezoid, simpson] = applyIntegralAprox(f, a, b, n);
     disp(["funcao: "   func2str(f);
           "numero de intervalos: " num2str(n);
@@ -43,6 +48,8 @@ function printIntegralAprox(f, integral_function, a, b, n)
          "\ttrapezoid = " num2str(e_trapezoid);
          "\tsimpson = " num2str(e_simpson)]);
     disp("\n\n")
+    # Retorna os erros
+    errors = [e_midpoint e_trapezoid e_simpson];
 end
 
 # Analisa a diferenca entre a integral e a integral aproximada
@@ -129,57 +136,31 @@ function demo()
 
     # parte a) 4 / (1 + x^2)
     # integral = 4 arctg(x)
-    # 2 subintervalos
-    printIntegralAprox(@(x) 4 / (1 + x^2),
-                       @(x) 4 * atan(x),
-                       0, 1, 2);
-    # 4 subintervalos
-    printIntegralAprox(@(x) 4 / (1 + x^2),
-                       @(x) 4 * atan(x),
-                       0, 1, 4);
-    # 8 subintervalos
-    printIntegralAprox(@(x) 4 / (1 + x^2),
-                       @(x) 4 * atan(x),
-                       0, 1, 8);
+    # 2, 4, 8, 16, 32, 64 subintervalos
+    # Primeiro, é necessário criar a matriz de erros
+    errors_first_function = [];
+    for i = [2 4 8 16 32 64]
+        errors_first_function = [errors_first_function;
+                                printIntegralAprox(@(x) 4 / (1 + x^2),
+                                                    @(x) 4 * atan(x),
+                                                    0, 1, i)];
 
-    # 16 subintervalos
-    printIntegralAprox(@(x) 4 / (1 + x^2),
-                       @(x) 4 * atan(x),
-                       0, 1, 16);
-    # 32 subintervalos
-    printIntegralAprox(@(x) 4 / (1 + x^2),
-                       @(x) 4 * atan(x),
-                       0, 1, 32);
-    # 64 subintervalos
-    printIntegralAprox(@(x) 4 / (1 + x^2),
-                       @(x) 4 * atan(x),
-                       0, 1, 64);
+    end
 
+    # Plota os erros em um grafico
+    semilogy([2 4 8 16 32 64], errors_first_function);
 
+    _ = input("Pressione enter para ver proxima funcao...");
     # parte b) sqrt(x)
     # integral = 2 * x^(3/2) / 3
-    # 2 subintervalos
-    printIntegralAprox(@(x) sqrt(x),
-                       @(x) 2 * x.^(3/2) / 3,
-                       0, 1, 2);
-    # 4 subintervalos
-    printIntegralAprox(@(x) sqrt(x),
-                       @(x) 2 * x.^(3/2) / 3,
-                       0, 1, 4);
-    # 8 subintervalos
-    printIntegralAprox(@(x) sqrt(x),
-                      @(x) 2 * x.^(3/2) / 3,
-                      0, 1, 8);
-    # 16 subintervalos
-    printIntegralAprox(@(x) sqrt(x),
-                     @(x) 2 * x.^(3/2) / 3,
-                     0, 1, 16);
-    # 32 subintervalos
-    printIntegralAprox(@(x) sqrt(x),
-                      @(x) 2 * x.^(3/2) / 3,
-                      0, 1, 32);
-    # 64 subintervalos
-    printIntegralAprox(@(x) sqrt(x),
-                      @(x) 2 * x.^(3/2) / 3,
-                      0, 1, 64);
+    errors_second_function = [];
+    # 2, 4, 8, 16, 32, 64 subintervalos
+    for i = [2 4 8 16 32 64]
+        errors_second_function = [errors_second_function;
+                                  printIntegralAprox(@(x) sqrt(x),
+                                                     @(x) 2 * x.^(3/2) / 3,
+                                                     0, 1, i)];
+    end
+
+    semilogy([2 4 8 16 32 64], errors_second_function);
 end
